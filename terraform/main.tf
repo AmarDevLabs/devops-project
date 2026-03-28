@@ -10,3 +10,8 @@ terraform {
 }
 
 provider "local" {}
+
+resource "local_file" "devops_file" {
+content = "DevOps Terraform Setup - Step 1"
+filename = "devops.txt"
+}
