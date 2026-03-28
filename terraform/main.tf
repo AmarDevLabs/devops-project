@@ -12,6 +12,6 @@ terraform {
 provider "local" {}
 
 resource "local_file" "devops_file" {
-content = "DevOps Terraform Setup - Step 1"
-filename = "devops.txt"
+content = var.file_content
+filename = var.file_name
 }
