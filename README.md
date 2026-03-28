@@ -1,2 +1,14 @@
+# DevOps Project
 
-This repo is for a devops project I am going to build for myself personally
+## Objective
+Provision infrastructure using Terraform and automate workflows.
+
+## Tools Used
+- Terraform
+- AWS (planned)
+- GitHub
+
+## Project Structure
+- terraform/ → infra code
+- scripts/ → automation
+- docs/ → documentation
