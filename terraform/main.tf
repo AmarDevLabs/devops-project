@@ -17,7 +17,7 @@ resource "local_file" "devops_file" {
 }
 
 provider "aws" {
-  region     = var.aws_region
+  region = var.aws_region
 }
 
 resource "aws_s3_bucket" "example" {
