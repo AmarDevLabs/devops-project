@@ -1,1 +1,3 @@
-FETCH_HEAD
+.terraform/
+*.tfstate
+*.tfstate.backup
