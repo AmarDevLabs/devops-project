@@ -1,4 +1,4 @@
-name: Terraform CI
+name: Terraform Plan
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  terraform:
+  terraform-plan:
     runs-on: ubuntu-latest
 
     defaults:
@@ -19,6 +19,9 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
 
       - name: Terraform Init
         run: terraform init
