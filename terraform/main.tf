@@ -12,6 +12,6 @@ terraform {
 provider "local" {}
 
 resource "local_file" "devops_file" {
-content = var.file_content
-filename = var.file_name
+  content  = var.file_content
+  filename = var.file_name
 }
