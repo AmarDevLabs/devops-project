@@ -8,17 +8,15 @@ on:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    
+
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-south-1
-      
+
     defaults:
       run:
         working-directory: terraform
-
-    environment: dev
 
     steps:
       - name: Checkout code
@@ -27,8 +25,20 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
-        run: terraform init
+      # 🔹 DEV
+      - name: Terraform Init DEV
+        run: terraform init -reconfigure \
+              -backend-config="key=dev/devops-project/terraform.tfstate"
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -var-file="envs/dev/terraform.tfvars"
+      - name: Terraform Apply DEV
+        run: terraform apply -auto-approve \
+              -var-file="envs/dev/terraform.tfvars"
+
+      # 🔹 PROD
+      - name: Terraform Init PROD
+        run: terraform init -reconfigure \
+              -backend-config="key=prod/devops-project/terraform.tfstate"
+
+      - name: Terraform Apply PROD
+        run: terraform apply -auto-approve \
+              -var-file="envs/prod/terraform.tfvars"
