@@ -26,3 +26,118 @@ resource "aws_s3_bucket" "example" {
     prevent_destroy = true
   }
 }
+
+
+# Generate SSH key for dev environment
+resource "tls_private_key" "dev_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "aws_key_pair" "dev_key_pair" {
+  key_name   = "dev-ec2-key"
+  public_key = tls_private_key.dev_key.public_key_openssh
+}
+
+# Generate SSH key for prod environment
+resource "tls_private_key" "prod_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "aws_key_pair" "prod_key_pair" {
+  key_name   = "prod-ec2-key"
+  public_key = tls_private_key.prod_key.public_key_openssh
+}
+
+# Default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Security group for dev
+resource "aws_security_group" "dev_sg" {
+  name        = "dev-ec2-sg"
+  description = "Allow SSH"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Security group for prod
+resource "aws_security_group" "prod_sg" {
+  name        = "prod-ec2-sg"
+  description = "Allow SSH"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Dev EC2 instance
+resource "aws_instance" "dev_ec2" {
+  ami                    = "ami-0b0fc5c8e6c3f7f2a"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.dev_key_pair.key_name
+  vpc_security_group_ids = [aws_security_group.dev_sg.id]
+
+  tags = {
+    Name = "dev-ec2-instance"
+    Env  = "dev"
+  }
+}
+
+# Prod EC2 instance
+resource "aws_instance" "prod_ec2" {
+  ami                    = "ami-0b0fc5c8e6c3f7f2a"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.prod_key_pair.key_name
+  vpc_security_group_ids = [aws_security_group.prod_sg.id]
+
+  tags = {
+    Name = "prod-ec2-instance"
+    Env  = "prod"
+  }
+}
+
+# Outputs
+output "dev_private_key" {
+  value     = tls_private_key.dev_key.private_key_pem
+  sensitive = true
+}
+
+output "dev_public_ip" {
+  value = aws_instance.dev_ec2.public_ip
+}
+
+output "prod_private_key" {
+  value     = tls_private_key.prod_key.private_key_pem
+  sensitive = true
+}
+
+output "prod_public_ip" {
+  value = aws_instance.prod_ec2.public_ip
+}
