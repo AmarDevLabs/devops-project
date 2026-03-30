@@ -20,6 +20,21 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_ami" "amazon_linux_free" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_s3_bucket" "example" {
   bucket = var.bucket_name
   lifecycle {
@@ -99,7 +114,7 @@ resource "aws_security_group" "prod_sg" {
 
 # Dev EC2 instance
 resource "aws_instance" "dev_ec2" {
-  ami                    = "ami-000e3d8f06cc3eab5"
+  ami = data.aws_ami.amazon_linux_free.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.dev_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.dev_sg.id]
@@ -112,7 +127,7 @@ resource "aws_instance" "dev_ec2" {
 
 # Prod EC2 instance
 resource "aws_instance" "prod_ec2" {
-  ami                    = "ami-0037c26d12aff4120"
+  ami = data.aws_ami.amazon_linux_free.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.prod_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.prod_sg.id]
