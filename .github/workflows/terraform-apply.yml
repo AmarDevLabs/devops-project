@@ -27,18 +27,14 @@ jobs:
 
       # 🔹 DEV
       - name: Terraform Init DEV
-        run: terraform init -reconfigure \
-              -backend-config="key=dev/devops-project/terraform.tfstate"
+        run: terraform init -reconfigure -backend-config="key=dev/devops-project/terraform.tfstate"
 
       - name: Terraform Apply DEV
-        run: terraform apply -auto-approve \
-              -var-file="envs/dev/terraform.tfvars"
+        run: terraform apply -auto-approve -var-file="envs/dev/terraform.tfvars"
 
       # 🔹 PROD
       - name: Terraform Init PROD
-        run: terraform init -reconfigure \
-              -backend-config="key=prod/devops-project/terraform.tfstate"
+        run: terraform init -reconfigure -backend-config="key=prod/devops-project/terraform.tfstate"
 
       - name: Terraform Apply PROD
-        run: terraform apply -auto-approve \
-              -var-file="envs/prod/terraform.tfvars"
+        run: terraform apply -auto-approve -var-file="envs/prod/terraform.tfvars"
