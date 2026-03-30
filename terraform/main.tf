@@ -99,7 +99,7 @@ resource "aws_security_group" "prod_sg" {
 
 # Dev EC2 instance
 resource "aws_instance" "dev_ec2" {
-  ami                    = "ami-0b0fc5c8e6c3f7f2a"
+  ami                    = "ami-000e3d8f06cc3eab5"
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.dev_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.dev_sg.id]
@@ -112,7 +112,7 @@ resource "aws_instance" "dev_ec2" {
 
 # Prod EC2 instance
 resource "aws_instance" "prod_ec2" {
-  ami                    = "ami-0b0fc5c8e6c3f7f2a"
+  ami                    = "ami-0037c26d12aff4120"
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.prod_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.prod_sg.id]
