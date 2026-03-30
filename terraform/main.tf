@@ -22,4 +22,7 @@ provider "aws" {
 
 resource "aws_s3_bucket" "example" {
   bucket = var.bucket_name
+lifecycle {
+    prevent_destroy = true
+  }
 }
