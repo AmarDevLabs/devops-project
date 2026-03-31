@@ -25,16 +25,17 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # 🔹 DEV
+# DEV
       - name: Terraform Init DEV
-        run: terraform init -reconfigure -backend-config="key=dev/devops-project/terraform.tfstate"
+        run: terraform init -reconfigure -backend-config="key=devops-project/terraform.tfstate"
 
       - name: Terraform Apply DEV
         run: terraform apply -auto-approve -var-file="envs/dev/terraform.tfvars"
 
-      # 🔹 PROD
+# PROD
       - name: Terraform Init PROD
-        run: terraform init -reconfigure -backend-config="key=prod/devops-project/terraform.tfstate"
+        run: terraform init -reconfigure -backend-config="key=devops-project/terraform.tfstate"
+
 
       - name: Terraform Apply PROD
         run: terraform apply -auto-approve -var-file="envs/prod/terraform.tfvars"
