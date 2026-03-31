@@ -22,7 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
-
+      
+      - name: Clean Terraform directory
+        run: rm -rf .terraform .terraform.lock.hcl
+    
       - name: Terraform Init DEV
         run: terraform init -reconfigure -backend-config="key=dev/devops-project/terraform.tfstate"
 
@@ -47,6 +50,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
 
+      - name: Clean Terraform directory
+        run: rm -rf .terraform .terraform.lock.hcl
+      
       - name: Terraform Init PROD
         run: terraform init -reconfigure -backend-config="key=prod/devops-project/terraform.tfstate"
 
