@@ -1,0 +1,145 @@
+name: Terraform Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: terraform
+  cancel-in-progress: true
+
+jobs:
+
+# ========================
+# INIT + PLAN (DEV)
+# ========================
+  dev-plan:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean Terraform
+        run: rm -rf .terraform .terraform.lock.hcl
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init DEV
+        run: terraform init -reconfigure -backend-config="key=dev/devops-project/terraform.tfstate"
+
+      - name: Validate
+        run: terraform validate
+
+      - name: Plan DEV
+        run: terraform plan -var-file="envs/dev/terraform.tfvars"
+
+
+# ========================
+# APPLY (DEV)
+# ========================
+  dev-apply:
+    needs: dev-plan
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean Terraform
+        run: rm -rf .terraform .terraform.lock.hcl
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init DEV
+        run: terraform init -reconfigure -backend-config="key=dev/devops-project/terraform.tfstate"
+
+      - name: Apply DEV
+        run: terraform apply -auto-approve -var-file="envs/dev/terraform.tfvars"
+
+
+# ========================
+# PLAN (PROD)
+# ========================
+  prod-plan:
+    needs: dev-apply
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean Terraform
+        run: rm -rf .terraform .terraform.lock.hcl
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init PROD
+        run: terraform init -reconfigure -backend-config="key=prod/devops-project/terraform.tfstate"
+
+      - name: Plan PROD
+        run: terraform plan -var-file="envs/prod/terraform.tfvars"
+
+
+# ========================
+# APPLY (PROD)
+# ========================
+  prod-apply:
+    needs: prod-plan
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean Terraform
+        run: rm -rf .terraform .terraform.lock.hcl
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init PROD
+        run: terraform init -reconfigure -backend-config="key=prod/devops-project/terraform.tfstate"
+
+      - name: Apply PROD
+        run: terraform apply -auto-approve -var-file="envs/prod/terraform.tfvars"
