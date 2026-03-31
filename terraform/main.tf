@@ -35,14 +35,23 @@ data "aws_ami" "amazon_linux_free" {
   }
 }
 
-resource "aws_s3_bucket" "example" {
-  bucket = var.bucket_name
+# DEV bucket
+resource "aws_s3_bucket" "dev_bucket" {
+  bucket = "amar-devops-dev-2026-001"
+
   lifecycle {
     prevent_destroy = true
   }
 }
 
+# PROD bucket
+resource "aws_s3_bucket" "prod_bucket" {
+  bucket = "amar-prod-devops-2026-001-ap-south-1"
 
+  lifecycle {
+    prevent_destroy = true
+  }
+}
 # Generate SSH key for dev environment
 resource "tls_private_key" "dev_key" {
   algorithm = "RSA"
@@ -122,6 +131,9 @@ resource "aws_instance" "dev_ec2" {
     Name = "dev-ec2-instance"
     Env  = "dev"
   }
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_instance" "prod_ec2" {
@@ -133,6 +145,9 @@ resource "aws_instance" "prod_ec2" {
   tags = {
     Name = "prod-ec2-instance"
     Env  = "prod"
+  }
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
