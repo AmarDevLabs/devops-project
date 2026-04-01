@@ -29,7 +29,8 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
 
       - name: Init PROD
-        run: terraform init \
+        run: |
+         terraform init \
           -reconfigure \
           -backend-config="bucket=amar-devops-tfstate-2026-001" \
           -backend-config="key=prod/devops-project/terraform.tfstate" \

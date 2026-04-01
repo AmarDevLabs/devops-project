@@ -32,12 +32,14 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Init
-        run: terraform init \
-          -reconfigure \
-          -backend-config="bucket=amar-devops-tfstate-2026-001" \
-          -backend-config="key=global/devops-project/terraform.tfstate" \
-          -backend-config="region=ap-south-1" \
-          -backend-config="dynamodb_table=terraform-locks"
+      - name: Init
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=global/devops-project/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
 
       - name: Validate
         run: terraform validate
