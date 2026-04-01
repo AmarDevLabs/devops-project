@@ -16,9 +16,9 @@ dnf update -y
 dnf install -y \
   containerd \
   git \
-  curl \
   wget \
-  tar
+  tar \
+  --allowerasing
 
 ########################################
 # Configure containerd
@@ -39,7 +39,7 @@ systemctl restart containerd
 # Kernel modules
 ########################################
 
-cat <<EOF | tee /etc/modules-load.d/k8s.conf
+cat <<EOF >/etc/modules-load.d/k8s.conf
 overlay
 br_netfilter
 EOF
@@ -51,7 +51,7 @@ modprobe br_netfilter
 # Sysctl config
 ########################################
 
-cat <<EOF | tee /etc/sysctl.d/k8s.conf
+cat <<EOF >/etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward                 = 1
@@ -64,14 +64,13 @@ sysctl --system
 ########################################
 
 swapoff -a
-
 sed -i '/swap/d' /etc/fstab
 
 ########################################
 # Kubernetes repo
 ########################################
 
-cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
+cat <<EOF >/etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/
@@ -91,9 +90,5 @@ dnf install -y \
   kubectl
 
 systemctl enable kubelet
-
-########################################
-# Done
-########################################
 
 echo "=== Bootstrap completed ==="
