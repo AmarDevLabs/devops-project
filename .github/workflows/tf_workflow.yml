@@ -16,9 +16,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ========================
-  # PR: DEV PLAN
-  # ========================
   dev-plan:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -57,9 +54,6 @@ jobs:
           name: plan-dev
           path: terraform/plan-dev.txt
 
-  # ========================
-  # PR: PROD PLAN
-  # ========================
   prod-plan-pr:
     if: github.event_name == 'pull_request'
     needs: dev-plan
@@ -99,9 +93,6 @@ jobs:
           name: plan-prod
           path: terraform/plan-prod.txt
 
-  # ========================
-  # PR: CHECK + COMMENT
-  # ========================
   comment-pr-plans:
     if: github.event_name == 'pull_request'
     needs: [dev-plan, prod-plan-pr]
@@ -144,29 +135,27 @@ jobs:
             const truncate = (text, maxLen) =>
               text.length > maxLen ? text.slice(0, maxLen) + '\n...output truncated...' : text;
 
-            const body = `## 🧾 Terraform Plan
-
-### 🔹 DEV
-\`\`\`
-${truncate(devPlan, 30000)}
-\`\`\`
-
-### 🔹 PROD
-\`\`\`
-${truncate(prodPlan, 30000)}
-\`\`\`
-`;
+            const body = [
+              '## 🧾 Terraform Plan',
+              '',
+              '### 🔹 DEV',
+              '```',
+              truncate(devPlan, 30000),
+              '```',
+              '',
+              '### 🔹 PROD',
+              '```',
+              truncate(prodPlan, 30000),
+              '```'
+            ].join('\n');
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body
+              body: body
             });
 
-  # ========================
-  # PUSH TO MAIN: DEV APPLY
-  # ========================
   dev-apply:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -211,9 +200,6 @@ ${truncate(prodPlan, 30000)}
       - name: Apply DEV
         run: terraform apply -auto-approve -var-file="envs/dev/terraform.tfvars"
 
-  # ========================
-  # PUSH TO MAIN: PROD PLAN
-  # ========================
   prod-plan:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: dev-apply
@@ -256,9 +242,6 @@ ${truncate(prodPlan, 30000)}
             echo "✅ No destructive changes in PROD"
           fi
 
-  # ========================
-  # PUSH TO MAIN: PROD APPLY (MANUAL APPROVAL)
-  # ========================
   prod-apply:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: prod-plan
