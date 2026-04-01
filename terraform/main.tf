@@ -112,6 +112,8 @@ resource "aws_instance" "dev_ec2" {
   instance_type          = "t3.micro"              # Free Tier eligible
   key_name               = aws_key_pair.dev_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.dev_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
+  user_data              = file("${path.module}/scripts/bootstrap.sh")
 
   tags = {
     Name = "dev-ec2-instance"
@@ -119,6 +121,7 @@ resource "aws_instance" "dev_ec2" {
   }
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [user_data]
   }
 }
 
@@ -127,6 +130,8 @@ resource "aws_instance" "prod_ec2" {
   instance_type          = "t3.micro"              # Free Tier eligible
   key_name               = aws_key_pair.prod_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.prod_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
+  user_data              = file("${path.module}/scripts/bootstrap.sh")
 
   tags = {
     Name = "prod-ec2-instance"
@@ -134,6 +139,7 @@ resource "aws_instance" "prod_ec2" {
   }
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [user_data]
   }
 }
 
