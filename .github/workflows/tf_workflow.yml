@@ -256,12 +256,6 @@ ${truncate(prodPlan, 30000)}
             echo "✅ No destructive changes in PROD"
           fi
 
-      - name: Upload PROD plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: prod-plan-after-dev-apply
-          path: terraform/plan-prod.txt
-
   # ========================
   # PUSH TO MAIN: PROD APPLY (MANUAL APPROVAL)
   # ========================
