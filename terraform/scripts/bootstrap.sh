@@ -1,36 +1,77 @@
 #!/bin/bash
 set -euxo pipefail
 
-# Update system
-yum update -y
+echo "=== Bootstrap started ==="
 
-# Install Docker
-amazon-linux-extras install docker -y
-systemctl enable docker
-systemctl start docker
-usermod -aG docker ec2-user
+########################################
+# System update
+########################################
 
-# Disable swap
-swapoff -a
-sed -i '/ swap / s/^/#/' /etc/fstab
+dnf update -y
 
-# Kernel modules and sysctl for Kubernetes
-cat >/etc/modules-load.d/k8s.conf <<'EOF'
+########################################
+# Install required tools
+########################################
+
+dnf install -y \
+  containerd \
+  git \
+  curl \
+  wget \
+  tar
+
+########################################
+# Configure containerd
+########################################
+
+mkdir -p /etc/containerd
+
+containerd config default > /etc/containerd/config.toml
+
+# Enable systemd cgroup driver
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' \
+/etc/containerd/config.toml
+
+systemctl enable containerd
+systemctl restart containerd
+
+########################################
+# Kernel modules
+########################################
+
+cat <<EOF | tee /etc/modules-load.d/k8s.conf
+overlay
 br_netfilter
 EOF
 
+modprobe overlay
 modprobe br_netfilter
 
-cat >/etc/sysctl.d/k8s.conf <<'EOF'
-net.bridge.bridge-nf-call-iptables = 1
+########################################
+# Sysctl config
+########################################
+
+cat <<EOF | tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
 net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward = 1
+net.ipv4.ip_forward                 = 1
 EOF
 
 sysctl --system
 
+########################################
+# Disable swap
+########################################
+
+swapoff -a
+
+sed -i '/swap/d' /etc/fstab
+
+########################################
 # Kubernetes repo
-cat >/etc/yum.repos.d/kubernetes.repo <<'EOF'
+########################################
+
+cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/
@@ -40,11 +81,19 @@ repo_gpgcheck=1
 gpgkey=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/repodata/repomd.xml.key
 EOF
 
-# Install kubelet, kubeadm, kubectl
-yum install -y kubelet kubeadm kubectl
+########################################
+# Install Kubernetes tools
+########################################
+
+dnf install -y \
+  kubelet \
+  kubeadm \
+  kubectl
+
 systemctl enable kubelet
 
-# Helpful tools
-yum install -y git curl wget vim
+########################################
+# Done
+########################################
 
-echo "Bootstrap complete" >/var/log/bootstrap-complete.log
+echo "=== Bootstrap completed ==="
