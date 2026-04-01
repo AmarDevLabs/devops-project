@@ -1,5 +1,12 @@
-FETCH_HEAD
-.terraform/
+# Terraform
 .terraform/
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
+crash.log
+
+# Secrets / keys
+*.pem
+*.key
+
+# Terraform plans
+plan-*.txt
