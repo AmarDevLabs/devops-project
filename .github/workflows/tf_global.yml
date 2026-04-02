@@ -37,7 +37,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Init
-      - name: Init
         run: |
           terraform init \
             -reconfigure \
