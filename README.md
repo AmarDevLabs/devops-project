@@ -1,37 +1,94 @@
-Writing
-🚀 DevOps Infrastructure Project
+Project Overview
 
-This project builds a production-style DevOps platform using Terraform, AWS, GitHub Actions, Kubernetes, and SSM — with full infrastructure-as-code and no SSH access.
+Production-style DevOps infrastructure built using:
 
-🏗️ Architecture Overview
-Technologies Used
-Terraform — Infrastructure as Code
-AWS EC2 — Compute
-AWS S3 — Remote Terraform State
-AWS DynamoDB — State Locking
-AWS IAM — Roles & Permissions
-AWS Systems Manager (SSM) — Remote Execution
-GitHub Actions — CI/CD
-Kubernetes (kubeadm) — Container Orchestration
-containerd — Container Runtime
-📁 Repository Structure
-terraform/
-├── global/        # Shared resources
-│   ├── IAM
-│   ├── SSM Documents
-│   └── Remote state config
-│
-├── dev/           # DEV environment
-│   ├── EC2 instance
-│   ├── Security group
-│   ├── Kubernetes init
-│   └── Terraform state
-│
-├── prod/          # PROD environment
-│   ├── EC2 instance
-│   ├── Security group
-│   ├── Kubernetes init
-│   └── Terraform state
-│
-├── scripts/
-│   └── bootstrap.sh   # Kubernetes + containerd installation
+Terraform (Infrastructure as Code)
+AWS (EC2, S3, IAM, SSM)
+GitHub Actions (CI/CD)
+Kubernetes (kubeadm)
+containerd runtime
+
+All infrastructure and execution are managed through Terraform and AWS Systems Manager (SSM). No SSH access is used.
+
+Architecture Summary
+
+Environments:
+
+global — shared infrastructure (IAM, SSM, backend)
+dev — development environment
+prod — production environment
+
+Each environment uses separate:
+
+Terraform state
+EC2 instances
+Kubernetes clusters
+
+Remote state is stored in:
+
+S3 bucket
+DynamoDB lock table
+CI/CD Workflow Summary
+
+Pull Request:
+
+Terraform plan runs for:
+global
+dev
+prod
+
+Merge to main:
+
+global apply runs automatically
+dev apply runs automatically
+prod workflow starts automatically
+
+Production:
+
+Requires manual approval before apply
+Protected using GitHub Environment rules
+Access Model
+
+Instances are accessed using:
+
+AWS Systems Manager (SSM)
+
+SSH access is disabled.
+
+Kubernetes Setup
+
+Kubernetes components are installed using Terraform-managed SSM execution.
+
+Bootstrap installs:
+
+containerd
+kubeadm
+kubelet
+kubectl
+required kernel settings
+
+Each environment runs:
+
+Independent Kubernetes cluster
+Single-node control-plane setup
+Deployment Flow
+
+PR Created
+→ Terraform plan runs
+
+PR Merged
+→ global apply
+→ dev apply
+→ prod workflow starts
+
+Approval Given
+→ prod apply runs
+
+Future Enhancements
+
+Planned improvements:
+
+Multi-node Kubernetes clusters
+Helm-based deployments
+Monitoring and logging stack
+Ingress and TLS configuration

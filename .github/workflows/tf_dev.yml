@@ -3,9 +3,15 @@ name: Terraform Dev Pipeline
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'terraform/global/**'
+      - '.github/workflows/tf_global.yml'
 
   push:
     branches: [main]
+    paths:
+      - 'terraform/global/**'
+      - '.github/workflows/tf_global.yml'
 
 permissions:
   contents: read
