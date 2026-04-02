@@ -1,6 +1,10 @@
 name: Terraform Prod Deployment
-
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/prod/**'
+      - '.github/workflows/tf_prod.yml'
   workflow_dispatch:
 
 permissions:
