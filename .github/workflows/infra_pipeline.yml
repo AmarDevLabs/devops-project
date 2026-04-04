@@ -107,6 +107,53 @@ jobs:
         if: github.event_name == 'push'
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
 
+    k8s_dev:
+      name: K8s Dev
+      needs: dev
+      runs-on: [self-hosted, linux, x64]
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform/k8s-dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Ensure kubeconfig exists
+        run: |
+          mkdir -p ~/.kube
+          sudo cp /etc/kubernetes/admin.conf ~/.kube/config
+          sudo chown $(id -u):$(id -g) ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Init K8S DEV
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=k8s-dev/devops-project/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Validate K8S DEV
+        run: terraform validate
+
+      - name: Plan K8S DEV
+        if: github.event_name == 'pull_request'
+        run: terraform plan -var-file="terraform.tfvars"
+
+      - name: Apply K8S DEV
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"        
+  
   prod:
     name: Prod
     needs: dev
