@@ -8,6 +8,7 @@ on:
       - 'terraform/dev/**'
       - 'terraform/prod/**'
       - 'terraform/scripts/**'
+      - 'terraform/k8s-dev/**'
       - '.github/workflows/infra_pipeline.yml'
   push:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - 'terraform/dev/**'
       - 'terraform/prod/**'
       - 'terraform/scripts/**'
+      - 'terraform/k8s-dev/**'  
       - '.github/workflows/infra_pipeline.yml'
 
 permissions:
