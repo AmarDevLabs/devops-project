@@ -19,6 +19,15 @@ resource "kubernetes_deployment" "nginx" {
       }
     }
 
+    strategy {
+      type = "RollingUpdate"
+
+      rolling_update {
+        max_unavailable = 1
+        max_surge       = 1
+      }
+    }
+
     template {
       metadata {
         labels = {
@@ -28,18 +37,11 @@ resource "kubernetes_deployment" "nginx" {
 
       spec {
         container {
-          image = "nginx-1.29.7"
+          image = "nginx:1.29.7"
           name  = "nginx"
 
           port {
             container_port = 80
-          }
-        }
-        strategy {
-          type = "RollingUpdate"
-          rolling_update {
-            max_unavailable = 1
-            max_surge       = 1
           }
         }
       }
