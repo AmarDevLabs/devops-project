@@ -17,7 +17,7 @@ resource "kubernetes_deployment" "frontend_app" {
   }
 
   spec {
-    replicas = 2
+    replicas = 1
 
     selector {
       match_labels = {
@@ -82,7 +82,7 @@ resource "kubernetes_deployment" "backend_app" {
   }
 
   spec {
-    replicas = 3
+    replicas = 2
 
     selector {
       match_labels = {
