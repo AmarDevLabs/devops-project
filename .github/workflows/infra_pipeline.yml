@@ -193,3 +193,48 @@ jobs:
 
       - name: Apply PROD
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
+
+  prod_k8s:   # NEW JOB
+    name: Prod Kubernetes Workloads
+
+    needs: prod   # runs after prod infra
+
+    runs-on: [self-hosted, linux, x64]
+
+    environment: prod   # IMPORTANT: requires approval
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform/k8s-prod
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init PROD K8S
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=k8s-prod/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Validate PROD K8S
+        run: terraform validate
+
+      - name: Plan PROD K8S
+        if: github.event_name == 'pull_request'
+        run: terraform plan -var-file="terraform.tfvars"
+
+      - name: Apply PROD K8S
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"     
