@@ -47,11 +47,11 @@ else
     --pod-network-cidr=192.168.0.0/16
 fi
 
-echo "Configuring kubeconfig for ec2-user"
-sudo mkdir -p /home/ec2-user/.kube
-sudo cp -f /etc/kubernetes/admin.conf /home/ec2-user/.kube/config
-sudo chown -R ec2-user:ec2-user /home/ec2-user/.kube
-sudo chmod 600 /home/ec2-user/.kube/config
+echo "Configuring kubeconfig for ssm-user"
+sudo mkdir -p /home/ssm-user/.kube
+sudo cp -f /etc/kubernetes/admin.conf /home/ssm-user/.kube/config
+sudo chown -R ssm-user:ssm-user /home/ssm-user/.kube
+sudo chmod 600 /home/ssm-user/.kube/config
 
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
@@ -67,7 +67,7 @@ done
 
 echo "Installing Calico if not already installed"
 if ! kubectl get daemonset calico-node -n kube-system >/dev/null 2>&1; then
-  kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.3/manifests/calico.yaml
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.3/manifests/calico.yaml || true
 else
   echo "Calico already installed"
 fi
