@@ -8,8 +8,8 @@ on:
       - 'terraform/dev/**'
       - 'terraform/prod/**'
       - 'terraform/scripts/**'
-      - 'terraform/k8s-prod/**' 
       - 'terraform/k8s-dev/**'
+      - 'terraform/k8s-prod/**'
       - '.github/workflows/infra_pipeline.yml'
   push:
     branches: [main]
@@ -19,7 +19,7 @@ on:
       - 'terraform/prod/**'
       - 'terraform/scripts/**'
       - 'terraform/k8s-dev/**'
-      - 'terraform/k8s-prod/**'  
+      - 'terraform/k8s-prod/**'
       - '.github/workflows/infra_pipeline.yml'
 
 permissions:
@@ -112,7 +112,7 @@ jobs:
   k8s_dev:
     name: K8s Dev
     needs: dev
-    runs-on: [self-hosted, linux, x64, dev-k8s]
+    runs-on: [self-hosted, Linux, X64, dev-k8s]
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -156,11 +156,11 @@ jobs:
         if: github.event_name == 'push'
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
 
-  prod:
-    name: Prod
+  prod_plan:
+    name: Prod Plan
     needs: k8s_dev
     runs-on: ubuntu-latest
-    environment: prod
+    if: github.event_name == 'pull_request'
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -192,17 +192,48 @@ jobs:
       - name: Plan PROD
         run: terraform plan -var-file="terraform.tfvars"
 
+  prod_apply:
+    name: Prod Apply
+    needs: k8s_dev
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    environment: prod
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform/prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init PROD
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=prod/devops-project/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Validate PROD
+        run: terraform validate
+
       - name: Apply PROD
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
 
-  prod_k8s:   
-    name: Prod Kubernetes Workloads
-
-    needs: prod   # runs after prod infra
-
-    runs-on: [self-hosted, linux, x64, prod-k8s]
-
-    environment: prod   # IMPORTANT: requires approval
+  prod_k8s_plan:
+    name: Prod Kubernetes Plan
+    needs: prod_plan
+    runs-on: [self-hosted, Linux, X64, prod-k8s]
+    if: github.event_name == 'pull_request'
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -214,7 +245,6 @@ jobs:
         working-directory: terraform/k8s-prod
 
     steps:
-
       - uses: actions/checkout@v4
 
       - name: Setup Terraform
@@ -231,11 +261,43 @@ jobs:
 
       - name: Validate PROD K8S
         run: terraform validate
-      
-      - name: Plan PROD
-        if: github.event_name == 'pull_request'   #plan runs  on PR
+
+      - name: Plan PROD K8S
         run: terraform plan -var-file="terraform.tfvars"
 
-      - name: Apply PROD
-        if: github.event_name == 'push'       #apply only after merge+approval
+  prod_k8s_apply:
+    name: Prod Kubernetes Workloads
+    needs: prod_apply
+    runs-on: [self-hosted, Linux, X64, prod-k8s]
+    if: github.event_name == 'push'
+    environment: prod
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform/k8s-prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init PROD K8S
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=k8s-prod/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Validate PROD K8S
+        run: terraform validate
+
+      - name: Apply PROD K8S
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
