@@ -1,4 +1,4 @@
-name: Infrastructure Pipeline
+name: Amar Dev Labs Workflow
 
 on:
   pull_request:
