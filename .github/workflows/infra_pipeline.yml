@@ -160,8 +160,8 @@ jobs:
     name: Prod Plan
     needs: k8s_dev
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+  
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -194,7 +194,7 @@ jobs:
 
   prod_apply:
     name: Prod Apply
-    needs: k8s_dev
+    needs: prod_k8s_plan
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     environment: prod
@@ -233,8 +233,8 @@ jobs:
     name: Prod Kubernetes Plan
     needs: prod_plan
     runs-on: [self-hosted, Linux, X64, prod-k8s]
-    if: github.event_name == 'pull_request'
-
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -300,10 +300,16 @@ jobs:
         run: terraform validate
 
       - name: Import existing namespaces (TEMP FIX)
-        continue-on-error: true   # IMPORTANT
+        continue-on-error: true
         run: |
           terraform import kubernetes_namespace.frontend frontend || true
-          terraform import kubernetes_namespace.backend backend || true 
-      
+          terraform import kubernetes_namespace.backend backend || true
+
+          terraform import kubernetes_deployment.frontend_app frontend/frontend-app || true
+          terraform import kubernetes_deployment.backend_app backend/backend-app || true
+
+          terraform import kubernetes_service.frontend_app frontend/frontend-service || true
+          terraform import kubernetes_service.backend_app backend/backend-service || true
+
       - name: Apply PROD K8S
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
