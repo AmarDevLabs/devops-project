@@ -299,5 +299,11 @@ jobs:
       - name: Validate PROD K8S
         run: terraform validate
 
+      - name: Import existing namespaces (TEMP FIX)
+        continue-on-error: true   # IMPORTANT
+        run: |
+          terraform import kubernetes_namespace.frontend frontend || true
+          terraform import kubernetes_namespace.backend backend || true 
+      
       - name: Apply PROD K8S
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
