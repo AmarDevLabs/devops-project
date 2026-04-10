@@ -306,6 +306,7 @@ jobs:
 
   o11y-plan-pr:
     name: O11Y Plan PR
+    needs: prod_plan   
     if: github.event_name == 'pull_request'
     runs-on: [self-hosted, prod-k8s]
 
@@ -344,6 +345,7 @@ jobs:
 
   o11y-plan-main:
     name: O11Y Plan Main
+    needs: prod_plan  
     if: github.event_name == 'push'
     runs-on: [self-hosted, prod-k8s]
 
@@ -377,11 +379,20 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -var-file="terraform.tfvars" -out=tfplan
 
+      - name: Upload tfplan
+        uses: actions/upload-artifact@v4
+        with:
+          name: o11y-prod-tfplan
+          path: terraform/o11y-prod/tfplan   
+  
   o11y-apply:
     name: O11Y Apply
+    needs: 
+       - o11y-plan-main
+       - prod_apply
+       - prod_k8s_apply  
     if: github.event_name == 'push'
     runs-on: [self-hosted, prod-k8s]
-    needs: o11y-plan-main
     environment: prod
 
     env:
@@ -407,6 +418,12 @@ jobs:
             -backend-config="key=o11y-prod/terraform.tfstate" \
             -backend-config="region=ap-south-1" \
             -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Download tfplan
+        uses: actions/download-artifact@v4
+        with:
+          name: o11y-prod-tfplan
+          path: terraform/o11y-prod  
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
