@@ -393,7 +393,6 @@ jobs:
        - prod_k8s_apply  
     if: github.event_name == 'push'
     runs-on: [self-hosted, prod-k8s]
-    needs: o11y-plan-main
     environment: prod
 
     env:
