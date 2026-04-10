@@ -1,11 +1,15 @@
-resource "helm_release" "loki" {
-  name      = "loki"
-  namespace = kubernetes_namespace_v1.loki.metadata[0].name
+resource "kubernetes_namespace_v1" "loki" {
+  metadata {
+    name = var.loki_namespace
+  }
+}
 
+resource "helm_release" "loki" {
+  name       = "loki"
+  namespace  = kubernetes_namespace_v1.loki.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "loki"
-
-  timeout = 600
+  timeout    = 600
 
   values = [
     <<EOF
