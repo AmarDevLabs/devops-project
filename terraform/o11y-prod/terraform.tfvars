@@ -1,2 +1,2 @@
-loki_namespace    = "loki_prod"
-grafana_namespace = "grafana_prod"
+loki_namespace    = "loki-prod"
+grafana_namespace = "grafana-prod"
