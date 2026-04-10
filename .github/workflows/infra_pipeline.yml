@@ -307,7 +307,7 @@ jobs:
   o11y-plan-pr:
     name: O11Y Plan PR
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, prod-k8s]
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -345,7 +345,7 @@ jobs:
   o11y-plan-main:
     name: O11Y Plan Main
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, prod-k8s]
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -380,7 +380,7 @@ jobs:
   o11y-apply:
     name: O11Y Apply
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, prod-k8s]
     needs: o11y-plan-main
     environment: prod
 
