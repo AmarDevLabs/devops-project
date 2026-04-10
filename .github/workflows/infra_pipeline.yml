@@ -10,6 +10,7 @@ on:
       - 'terraform/scripts/**'
       - 'terraform/k8s-dev/**'
       - 'terraform/k8s-prod/**'
+      - 'terraform/o11y-prod/**'
       - '.github/workflows/infra_pipeline.yml'
   push:
     branches: [main]
@@ -21,6 +22,7 @@ on:
       - 'terraform/k8s-dev/**'
       - 'terraform/k8s-prod/**'
       - '.github/workflows/infra_pipeline.yml'
+      - 'terraform/o11y-prod/**'
 
 permissions:
   contents: read
@@ -301,3 +303,110 @@ jobs:
 
       - name: Apply PROD K8S
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
+
+  o11y-plan-pr:
+    name: O11Y Plan PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform/o11y-prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=o11y-prod/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -var-file="terraform.tfvars"
+
+  o11y-plan-main:
+    name: O11Y Plan Main
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform/o11y-prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=o11y-prod/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -var-file="terraform.tfvars" -out=tfplan
+
+  o11y-apply:
+    name: O11Y Apply
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: o11y-plan-main
+    environment: prod
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-south-1
+
+    defaults:
+      run:
+        working-directory: terraform/o11y-prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=amar-devops-tfstate-2026-001" \
+            -backend-config="key=o11y-prod/terraform.tfstate" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
