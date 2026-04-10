@@ -47,7 +47,7 @@ resource "aws_instance" "prod_ec2" {
   user_data = file("${path.module}/../scripts/bootstrap.sh")
   
   root_block_device {
-    volume_size           = 15
+    volume_size           = 30
     volume_type           = "gp3"
     delete_on_termination = true
   }

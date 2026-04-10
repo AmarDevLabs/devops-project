@@ -44,6 +44,13 @@ resource "aws_instance" "dev_ec2" {
   iam_instance_profile   = data.terraform_remote_state.global.outputs.ssm_instance_profile_name
   user_data              = file("${path.module}/../scripts/bootstrap.sh")
 
+  root_block_device {
+    volume_size           = 15
+    volume_type           = "gp3"
+    delete_on_termination = true
+  }
+
+
   tags = {
     Name = "dev-ec2-instance"
     Env  = "dev"
