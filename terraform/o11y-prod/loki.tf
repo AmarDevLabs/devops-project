@@ -5,12 +5,14 @@ resource "kubernetes_namespace_v1" "loki" {
 }
 
 resource "helm_release" "loki" {
-  name       = "loki"
-  namespace  = kubernetes_namespace_v1.loki.metadata[0].name
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "loki"
-  timeout    = 240
-  wait       = true
+  name            = "loki"
+  namespace       = kubernetes_namespace_v1.loki.metadata[0].name
+  repository      = "https://grafana.github.io/helm-charts"
+  chart           = "loki"
+  timeout         = 240
+  wait            = true
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [
     <<EOF

@@ -1,0 +1,27 @@
+name: Cleanup Loki Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup-loki:
+    runs-on: [self-hosted, prod-k8s]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure kubeconfig exists
+        run: |
+          mkdir -p ~/.kube
+          sudo cp /etc/kubernetes/admin.conf ~/.kube/config
+          sudo chown $(id -u):$(id -g) ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Uninstall Loki release
+        run: helm uninstall loki -n loki-prod || true
+
+      - name: Delete leftover PVC
+        run: kubectl delete pvc storage-loki-0 -n loki-prod --ignore-not-found=true
