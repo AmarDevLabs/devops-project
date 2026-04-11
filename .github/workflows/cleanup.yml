@@ -5,23 +5,38 @@ on:
 
 jobs:
   cleanup-loki:
-    runs-on: [self-hosted, prod-k8s]
+    runs-on: [self-hosted, Linux, X64, prod-k8s]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ensure kubeconfig exists
+      - name: Check kubeconfig
         run: |
-          mkdir -p ~/.kube
-          sudo cp /etc/kubernetes/admin.conf ~/.kube/config
-          sudo chown $(id -u):$(id -g) ~/.kube/config
-          chmod 600 ~/.kube/config
+          echo "HOME=$HOME"
+          ls -ld ~/.kube || true
+          ls -l ~/.kube/config || true
+          kubectl version --client
+          kubectl get ns
 
-      - name: Install Helm
+      - name: Setup Helm
         uses: azure/setup-helm@v4
 
-      - name: Uninstall Loki release
-        run: helm uninstall loki -n loki-prod || true
+      - name: Check existing Loki resources
+        run: |
+          kubectl get ns loki-prod || true
+          kubectl get all -n loki-prod || true
+          kubectl get pvc -n loki-prod || true
+          helm list -A || true
 
-      - name: Delete leftover PVC
-        run: kubectl delete pvc storage-loki-0 -n loki-prod --ignore-not-found=true
+      - name: Uninstall Loki release
+        run: |
+          helm uninstall loki -n loki-prod || true
+
+      - name: Delete leftover Loki PVC
+        run: |
+          kubectl delete pvc storage-loki-0 -n loki-prod --ignore-not-found=true
+
+      - name: Show remaining Loki resources
+        run: |
+          kubectl get all -n loki-prod || true
+          kubectl get pvc -n loki-prod || true
