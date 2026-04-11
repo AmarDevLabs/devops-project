@@ -109,13 +109,13 @@ spec:
       command: ["/bin/sh", "-c", "sleep 3600"]
   restartPolicy: Never
       EOT
-      "setup" = <<-EOT
+      "setup"          = <<-EOT
 #!/bin/sh
 set -eu
 mkdir -p "$VOL_DIR"
 chmod 0777 "$VOL_DIR"
       EOT
-      "teardown" = <<-EOT
+      "teardown"       = <<-EOT
 #!/bin/sh
 set -eu
 rm -rf "$VOL_DIR"
