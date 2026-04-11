@@ -9,7 +9,7 @@ resource "helm_release" "grafana" {
   namespace  = kubernetes_namespace_v1.grafana.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "grafana"
-  timeout    = 600
+  timeout    = 240
   wait       = true
 
   values = [

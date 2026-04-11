@@ -26,7 +26,7 @@ resource "kubernetes_manifest" "local_path_cluster_role" {
       {
         apiGroups = [""]
         resources = ["nodes", "persistentvolumeclaims", "configmaps", "pods", "pods/log"]
-        verbs     = ["get", "list", "watch"]
+        verbs     = ["get", "list", "watch", "create", "delete"]
       },
       {
         apiGroups = [""]
