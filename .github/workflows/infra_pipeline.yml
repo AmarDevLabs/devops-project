@@ -1,8 +1,6 @@
 name: Amar Dev Labs Workflow
 
-on:
-  workflow_dispatch:
-  
+on:  
    pull_request:
     branches: [main]
     paths:
@@ -15,8 +13,6 @@ on:
       - 'terraform/o11y-prod/**'
       - '.github/workflows/infra_pipeline.yml'
   
-on:
-   workflow_dispatch:     
    push:
     branches: [main]
     paths:
