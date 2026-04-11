@@ -14,6 +14,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
@@ -21,10 +28,10 @@ jobs:
         run: terraform init
 
       - name: Import Grafana
-        run: terraform import -input=false helm_release.grafana grafana-prod/grafana || true
+        run: terraform import -input=false helm_release.grafana grafana-prod/grafana
 
       - name: Import Loki
-        run: terraform import -input=false helm_release.loki loki-prod/loki || true
+        run: terraform import -input=false helm_release.loki loki-prod/loki
 
       - name: Terraform Plan
         run: terraform plan
