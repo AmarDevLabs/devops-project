@@ -1,0 +1,30 @@
+name: Terraform O11y Import
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import:
+    runs-on: prod-k8s
+    defaults:
+      run:
+        working-directory: terraform/o11y-prod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Import Grafana
+        run: terraform import -input=false helm_release.grafana grafana-prod/grafana || true
+
+      - name: Import Loki
+        run: terraform import -input=false helm_release.loki loki-prod/loki || true
+
+      - name: Terraform Plan
+        run: terraform plan
