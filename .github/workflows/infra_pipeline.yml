@@ -1,7 +1,7 @@
 name: Amar Dev Labs Workflow
 on:
   workflow_dispatch:
-on:
+  
   pull_request:
     branches: [main]
     paths:
