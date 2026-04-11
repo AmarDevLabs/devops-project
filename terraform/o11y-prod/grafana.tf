@@ -10,6 +10,7 @@ resource "helm_release" "grafana" {
   repository = "https://grafana.github.io/helm-charts"
   chart      = "grafana"
   timeout    = 600
+  wait       = true
 
   values = [
     <<EOF
@@ -20,7 +21,20 @@ service:
 
 persistence:
   enabled: true
+  storageClassName: local-path
   size: 5Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
 EOF
+  ]
+
+  depends_on = [
+    kubernetes_manifest.local_path_deployment,
+    kubernetes_manifest.local_path_storage_class
   ]
 }
