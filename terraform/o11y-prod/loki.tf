@@ -10,6 +10,7 @@ resource "helm_release" "loki" {
   repository = "https://grafana.github.io/helm-charts"
   chart      = "loki"
   timeout    = 600
+  wait       = true
 
   values = [
     <<EOF
@@ -35,12 +36,21 @@ singleBinary:
   replicas: 1
   persistence:
     enabled: true
+    storageClass: local-path
     size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
 
 backend:
   replicas: 0
+
 read:
   replicas: 0
+
 write:
   replicas: 0
 
@@ -53,5 +63,10 @@ resultsCache:
 minio:
   enabled: false
 EOF
+  ]
+
+  depends_on = [
+    kubernetes_manifest.local_path_deployment,
+    kubernetes_manifest.local_path_storage_class
   ]
 }
