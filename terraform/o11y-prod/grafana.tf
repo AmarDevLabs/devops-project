@@ -15,6 +15,7 @@ resource "helm_release" "grafana" {
   atomic          = true
   cleanup_on_fail = true
 
+
   values = [
     <<EOF
 adminPassword: admin123
@@ -41,4 +42,5 @@ EOF
     kubernetes_manifest.local_path_storage_class
   ]
 }
+
 
