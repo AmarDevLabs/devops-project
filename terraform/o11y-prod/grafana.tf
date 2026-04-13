@@ -36,7 +36,7 @@ resources:
 EOF
   ]
 
-   depends_on = [
+  depends_on = [
     kubernetes_manifest.local_path_deployment,
     kubernetes_manifest.local_path_storage_class
   ]
