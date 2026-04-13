@@ -18,12 +18,21 @@ resource "aws_key_pair" "prod_key_pair" {
 
 resource "aws_security_group" "prod_sg" {
   name        = "prod-ec2-sg"
-  description = "Allow SSH"
+  description = "Allow SSH and Grafana"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
+    description = "SSH"
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Grafana NodePort"
+    from_port   = 31591
+    to_port     = 31591
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

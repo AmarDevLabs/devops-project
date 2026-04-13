@@ -4,7 +4,6 @@ resource "kubernetes_namespace_v1" "grafana" {
   }
 }
 
-
 resource "helm_release" "grafana" {
   name            = "grafana"
   namespace       = kubernetes_namespace_v1.grafana.metadata[0].name
@@ -15,13 +14,14 @@ resource "helm_release" "grafana" {
   atomic          = true
   cleanup_on_fail = true
 
-
   values = [
     <<EOF
 adminPassword: admin123
 
 service:
   type: NodePort
+  port: 80
+  nodePort: 31591
 
 persistence:
   enabled: true
@@ -42,5 +42,3 @@ EOF
     kubernetes_manifest.local_path_storage_class
   ]
 }
-
-
