@@ -18,7 +18,7 @@ resource "aws_key_pair" "prod_key_pair" {
 
 resource "aws_security_group" "prod_sg" {
   name        = "prod-ec2-sg"
-  description = "Allow SSH and Grafana"
+  description = "Allow SSH"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
@@ -29,13 +29,6 @@ resource "aws_security_group" "prod_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    description = "Grafana NodePort"
-    from_port   = 31591
-    to_port     = 31591
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   egress {
     from_port   = 0
@@ -43,6 +36,18 @@ resource "aws_security_group" "prod_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "prod_grafana" {
+  security_group_id = aws_security_group.prod_sg.id
+
+  description = "Grafana NodePort"
+
+  ip_protocol = "tcp"
+  from_port   = 31591
+  to_port     = 31591
+
+  cidr_ipv4 = "0.0.0.0/0"
 }
 
 resource "aws_instance" "prod_ec2" {
