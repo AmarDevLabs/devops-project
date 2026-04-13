@@ -4,6 +4,7 @@ resource "kubernetes_namespace_v1" "grafana" {
   }
 }
 
+
 resource "helm_release" "grafana" {
   name            = "grafana"
   namespace       = kubernetes_namespace_v1.grafana.metadata[0].name
@@ -40,3 +41,4 @@ EOF
     kubernetes_manifest.local_path_storage_class
   ]
 }
+
